@@ -221,7 +221,7 @@ TLMAX4  =                 %d / Last channel used
 				sys.stdout.write('...skipping SN=%s\n' % sn)				
 				continue 
 
-			xrc_list.append(XRCmodule(sn))
+			xrc_list.append(NicerSingleModule(sn))
 			xrc_list[-1].setMPUnumber(mpu_num)
 			xrc_list[-1].setFPMnumber(fpm_num)		
 			xrc_list[-1].readEffectiveArea('%s/%s' % (os.getenv('DATADIR_XSPECRESP'),self.param['XRC_AREA_DIR']))
@@ -351,7 +351,7 @@ HISTORY  FITS ARF extension written by WTARF1 1.1.0
 
 		os.system('rm -f %s/tmp_header_*.txt' % outdir)
 
-class XRCmodule:
+class NicerSingleModule:
 	def __init__(self,SN):
 		self.SN = SN 
 		sys.stdout.write('---- reading SN%s...\n' % self.SN)
