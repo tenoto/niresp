@@ -39,8 +39,8 @@ class XrayConcentrator:
 	def __init__(self, yamlfile):
 		self.yamlfile = yamlfile 
 
-		print "**** XRC (X-ray Concentrator) created ****"
-		print "yamlfile: %s" % self.yamlfile
+		print("**** XRC (X-ray Concentrator) created ****")
+		print("yamlfile: %s" % self.yamlfile)
 		self.readYAMLFile()
 		self.setMaterial()		
 		self.showProperty()
@@ -55,25 +55,25 @@ class XrayConcentrator:
 		f.close()
 
 		if not (self.param['surface_model'] in ["DW","NC"]):
-			print "surface model is not correct."
+			print("surface model is not correct.")
 			quit()
 
 	def showProperty(self):
-		print "------------- Propeties ---------------"
-		print "Material : %s" % self.param['material']['symbol']
-		print "   atomicWeight %.3f, Density %.3f (g/cm3)" % (
+		print("------------- Propeties ---------------")
+		print("Material : %s" % self.param['material']['symbol'])
+		print("   atomicWeight %.3f, Density %.3f (g/cm3)" % (
 			self.param['material']['atomicWeight'],
-			self.param['material']['density'])
-		print "Foil_dimension_file: %s " % self.param['foil_dimension_file']
-		print "Spoke1: number=%d, width=%.3f cm" % (
+			self.param['material']['density']))
+		print("Foil_dimension_file: %s " % self.param['foil_dimension_file'])
+		print("Spoke1: number=%d, width=%.3f cm" % (
 			self.param['spoke']['n_spoke1'], 
-			self.param['spoke']['spoke1_wid'])
-		print "Spoke2: number=%d, width=%.3f cm" % (
+			self.param['spoke']['spoke1_wid']))
+		print("Spoke2: number=%d, width=%.3f cm" % (
 			self.param['spoke']['n_spoke2'], 
-			self.param['spoke']['spoke2_wid'])		
-		print "Roughness: %.3f (A)" % self.param['roughness_A']		
+			self.param['spoke']['spoke2_wid']))
+		print("Roughness: %.3f (A)" % self.param['roughness_A'])	
 		self.use_foilid_list = eval(self.param['use_foilid_list'])
-		print "Surface Model: %s" % self.param['surface_model']
+		print("Surface Model: %s" % self.param['surface_model'])
 
 	def setMaterial(self):
 		self.material = Material(self.param['material']['symbol'], 
@@ -86,11 +86,11 @@ class XrayConcentrator:
 			quit()		
 
 		self.foils = []
-		print "------------------------------------------------------------------------"
-		print "Foil Input Dimension"
-		print "Foil-ID   : Material, Top radi, Bottom radi, Angle, Angle, GeoArea Use?"
-		print "                        (cm)        (cm)     (rad)  (deg)   (cm2)      "
-		print "------------------------------------------------------------------------"
+		print("------------------------------------------------------------------------")
+		print("Foil Input Dimension")
+		print("Foil-ID   : Material, Top radi, Bottom radi, Angle, Angle, GeoArea Use?")
+		print("                        (cm)        (cm)     (rad)  (deg)   (cm2)      ")
+		print("------------------------------------------------------------------------")
 		total_geometric_area     = 0.0
 		total_geometric_area_obs1 = 0.0
 		total_geometric_area_obs2 = 0.0		
@@ -135,9 +135,9 @@ class XrayConcentrator:
 				value = foil_geometric_area - subtraction
 				total_geometric_area_obs2 += value
 
-		print "Total geometric area (cm2):",        total_geometric_area
+		print("Total geometric area (cm2):",        total_geometric_area)
 		#print "after subtracting spoke obsculation: ", total_geometric_area_obs1
-		print "after subtracting spoke obsculation: ", total_geometric_area_obs2
+		print("after subtracting spoke obsculation: ", total_geometric_area_obs2)
 		#print self.n_spoke1, self.spoke1_wid
 		#print self.n_spoke2, self.spoke2_wid
 		#print self.foils[-1].top_radius_cm
@@ -146,7 +146,7 @@ class XrayConcentrator:
 		obst_2 = float(self.param['spoke']['n_spoke2']) * float(self.param['spoke']['spoke2_wid']) * (self.foils[-1].top_radius_cm-self.foils[0].bottom_radius_cm)
 		#print obst_1, obst_2
 		#print total_geometric_area/100.0 - obst_1 - obst_2
-		print "------------------------------------------------------------------------"
+		print("------------------------------------------------------------------------")
 
 	def getFoil(self, foilid):
 		return self.foils[foilid-1]
@@ -197,7 +197,7 @@ class Foil():
 				self.use_flag_mark = ' '				
 
 	def showProperty(self):
-		print "Foil-ID %02d: %s %.7f %.7f %.7f %.7f %.8f   %s  (%s)" % (
+		print("Foil-ID %02d: %s %.7f %.7f %.7f %.7f %.8f   %s  (%s)" % (
 			self.foilid,
 			self.material.symbol,
 			self.top_radius_cm,
@@ -206,7 +206,7 @@ class Foil():
 			self.angle_deg,
 			self.geo_area_cm2,
 			self.use_flag_mark,
-			self.surface_model)
+			self.surface_model))
 
 	def getGeometricalArea(self):
 		return pi*(self.top_radius_cm**2-self.bottom_radius_cm**2)
@@ -302,11 +302,11 @@ class Material:
 			kind='linear', bounds_error=False, fill_value=0)		
 	
 	def showProperty(self):
-		print "---- Material -----"
-		print "Material symbol : %s"   % self.symbol
-		print "Atomic Weithg   : %.3f" % self.atomicWeight
-		print "Density (g/cm^3): %.3f" % self.density
-		print "-------------------"
+		print("---- Material -----")
+		print("Material symbol : %s"   % self.symbol)
+		print("Atomic Weithg   : %.3f" % self.atomicWeight)
+		print("Density (g/cm^3): %.3f" % self.density)
+		print("-------------------")
 
 	def getF1(self, energy_keV):
 		return self.interpolate_keV_vs_f1(energy_keV)
