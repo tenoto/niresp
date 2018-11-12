@@ -19,35 +19,38 @@ I assumed …
 
 You will be ready to use script after using following command lines≥
 
-%> git clone https://github.com/tenoto/niresp.git
-%> cd niresp 
-%> cp -r data niresp 
-%> pipenv install
-	# This command install required python libraries to your environment with making virtual python environment. 
-%> source setenv/setenv.bashrc 
-	# This sets up environmental parameters.
+	git clone https://github.com/tenoto/niresp.git
+	cd niresp 
+	cp -r data niresp 
+	pipenv install
+
+This command install required python libraries to your environment with making virtual python environment. 
+	
+	source setenv/setenv.bashrc 
+
+This sets up environmental parameters.
 
 ## 3. Script definitions 
 
-niresp/xrc.py : This library calculates semi-analytical effective area, and makes output files. 
+	niresp/xrc.py : This library calculates semi-analytical effective area, and makes output files. 
 
-niresp/xspecresp.py : This convert input text format files to “rmf” and “arf” file for XSPEC analyses of NICER
+	niresp/xspecresp.py : This convert input text format files to “rmf” and “arf” file for XSPEC analyses of NICER
 
-niresp/cli/*.py : These files support you to use the above library in command lines.
+	niresp/cli/*.py : These files support you to use the above library in command lines.
 
 ## 4. How to use 
 
 The following command line gives you which sub command lines exist. 
 
-%> niresp/cli/xspecresp.py —help
+	niresp/cli/xspecresp.py —help
 
 You can also check sub-command line as :
 
-%> niresp/cli/xspecresp.py generate-rmffile —help
+	niresp/cli/xspecresp.py generate-rmffile —help
 
 If you want to generate “rmf” and “arf” files, following shell script is a test file for this purpose. 
 
-%> tests/test_xspecresp.sh
+	tests/test_xspecresp.sh
 
 (Yaml parameters are just sample) 
 
