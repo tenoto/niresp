@@ -19,13 +19,21 @@ def cli(ctx):
 @click.option('--foil_dimension_file', '-f', 
 	default='data/cubesat/foilparameter/v181108/foilpara/foilpara_fl30cm.txt')
 @click.option('--maximum_incident_angle_deg', '-a', default=3.0)
+@click.option('--maximum_diameter_cm', '-d', default=9.0)
+@click.option('--scaling_factor', '-d', default=1.0)
 @click.option('--outputfile', '-o', default='cubesat_effectivearea.txt')
 def generateEffectiveAreaFile(setup_yamlfile_path,
-	foil_dimension_file,maximum_incident_angle_deg,outputfile):
-	print("plot effective area")
+	foil_dimension_file,
+	maximum_incident_angle_deg,maximum_diameter_cm,
+	scaling_factor,
+	outputfile):
 	cubesat_xrc = niresp.cubesat.CubeSatXRC(setup_yamlfile_path)
 	cubesat_xrc.set_foil_dimension_file(foil_dimension_file)
 	cubesat_xrc.set_maximum_incident_angle_deg(maximum_incident_angle_deg)
+	cubesat_xrc.set_maximum_diameter_cm(maximum_diameter_cm)	
+	cubesat_xrc.set_scaling_factor(scaling_factor)		
+	cubesat_xrc.setMaterial()		
+	cubesat_xrc.showProperty()
 	cubesat_xrc.setFoilDimension()
 	cubesat_xrc.generateEffectiveAreaFile(outfile=outputfile)
 

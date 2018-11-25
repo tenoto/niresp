@@ -24,11 +24,13 @@ class CubeSatXRC():
 		print("**** XRC (X-ray Concentrator) created for CubeSat ****")
 		print("yamlfile: %s" % self.yamlfile)
 		self.readYAMLFile()
-		self.setMaterial()		
-		self.showProperty()
-		self.setFoilDimension()
+		#self.setMaterial()		
+		#self.showProperty()
+		#self.setFoilDimension()
 
 	def readYAMLFile(self):
+		print('--- method: %s ---' % sys._getframe().f_code.co_name)		
+
 		if not os.path.exists(self.yamlfile):
 			sys.stderr.write('input parameter_file does not exist.: %s\n' % self.yamlfile)
 			quit()		
@@ -41,6 +43,7 @@ class CubeSatXRC():
 			quit()
 
 	def showProperty(self):
+		print('--- method: %s ---' % sys._getframe().f_code.co_name)			
 		print("------------- Propeties ---------------")
 		print("Material : %s" % self.param['material']['symbol'])
 		print("   atomicWeight %.3f, Density %.3f (g/cm3)" % (
@@ -58,16 +61,19 @@ class CubeSatXRC():
 		print("Surface Model: %s" % self.param['surface_model'])
 
 	def setMaterial(self):
+		print('--- method: %s ---' % sys._getframe().f_code.co_name)				
 		self.material = niresp.xrc.Material(self.param['material']['symbol'], 
 			self.param['material']['atomicWeight'],
 			self.param['material']['density'])
 
 	def setFoilDimension(self):
+		print('--- method: %s ---' % sys._getframe().f_code.co_name)				
 		if not os.path.exists(self.yamlfile):
 			sys.stderr.write('input parameter_file does not exist.: %s\n' % self.param['foil_dimension_file'])
 			quit()		
 
 		self.foils = []
+		self.use_foilid_list = []
 		print("------------------------------------------------------------------------")
 		print("Foil Input Dimension")
 		print("Foil-ID   : Material, Top radi, Bottom radi, Angle, Angle, GeoArea Use?")
@@ -88,11 +94,12 @@ class CubeSatXRC():
 			foil_parab_angle_rad  = float(cols[2])
 			foil_parab_angle_deg  = scipy.degrees(foil_parab_angle_rad)
 
-			if foil_parab_angle_deg > self.param['maximum_incident_angle_deg']:
-				break 
-
 			foil_parab_bot_radius_cm = 0.1 * foil_parab_bot_radius
 			foil_parab_top_radius_cm = 0.1 * foil_parab_top_radius
+
+			if foil_parab_angle_deg <= self.param['maximum_incident_angle_deg'] and (2.0*foil_parab_top_radius_cm <= self.param['maximum_diameter_cm'] ):
+				self.use_foilid_list.append(foil_id)
+
 
 			foil_cone_angle_rad = foil_parab_angle_rad # assumed for CubeSat 
 
@@ -119,6 +126,9 @@ class CubeSatXRC():
 			value = foil_geometric_area - subtraction
 			total_geometric_area_obs2 += value
 
+		self.param['use_foilid_list'] = self.use_foilid_list
+		self.param['numof_use_foils'] = len(self.param['use_foilid_list'])	
+
 		print("Total geometric area (cm2):",        total_geometric_area)
 		print("after subtracting spoke obsculation: ", total_geometric_area_obs2)
 		obst_1 = float(self.param['spoke']['n_spoke1']) * float(self.param['spoke']['spoke1_wid']) * (self.foils[-1].top_radius_cm-self.foils[0].bottom_radius_cm)
@@ -130,33 +140,45 @@ class CubeSatXRC():
 
 	def set_foil_dimension_file(self,foil_dimension_file):
 		self.param['foil_dimension_file'] = foil_dimension_file
+		print("re-set foil dimension file: %s " % self.param['foil_dimension_file'])
+
+	def set_maximum_diameter_cm(self,maximum_diameter_cm):
+		self.param['maximum_diameter_cm'] = maximum_diameter_cm
+		print("re-set maximum_diameter_cm: %.3f " % self.param['maximum_diameter_cm'])
 
 	def set_maximum_incident_angle_deg(self,maximum_incident_angle_deg):
 		self.param['maximum_incident_angle_deg'] = maximum_incident_angle_deg
+		print("re-set maximum_incident_angle_deg: %.3f " % self.param['maximum_incident_angle_deg'])
+
+	def set_scaling_factor(self,scaling_factor):
+		self.param['scaling_factor'] = scaling_factor
+		print("re-set scaling_factor: %.3f " % self.param['scaling_factor'])
 
 	def getEffectiveArea(self, energy_keV):
 		Aeff_tot = 0.0
 		for foil in self.foils:
-			Aeff_tot += foil.getEffectiveArea(energy_keV)
+			if foil.use_flag:			
+				Aeff_tot += foil.getEffectiveArea(energy_keV)
 		return scipy.real(Aeff_tot)
 
 	def generateEffectiveAreaFile(self,outfile='effectivearea.txt'):
-		print("generateEffectiveAreaFile")
+		print('--- method: %s ---' % sys._getframe().f_code.co_name)		
 		energy_array = np.arange(
 			self.param['effectivearea_energy_start_keV'],
 			self.param['effectivearea_energy_stop_keV'],
 			self.param['effectivearea_energy_step_keV'])
 		f = open(outfile,'w')		
-		dump = '# foil numbers : %d\n' % len(self.foils)
+		dump = '# foil numbers : %d\n' % self.param['numof_use_foils']
 		f.write(dump)
 		for energy_keV in energy_array:
-			dump = '%.4f %.4f\n' % (energy_keV,self.getEffectiveArea(energy_keV))
+			dump = '%.4f %.4f\n' % (energy_keV,self.param['scaling_factor']*self.getEffectiveArea(energy_keV))
 			f.write(dump)
 		f.close()
+		print("save to %s" % outfile)
 
-#	def generateArffile(self,outfile='gwcubesat.arf'):
-#		print("generateArffile")
-
+		outyamlfile = outfile.replace('.txt','.yaml')
+		with open(outyamlfile, 'w') as outfile:
+		    yaml.dump(self.param, outfile, default_flow_style=False)
 
 class CubeSatXspecResponse():
 	def __init__(self,setup_yamlfile_path):
@@ -185,6 +207,7 @@ class CubeSatXspecResponse():
 		this method generates XPSEC redistribution matrix file (rmf file) for NICER.
 		https://heasarc.gsfc.nasa.gov/docs/heasarc/caldb/docs/memos/cal_gen_92_002/cal_gen_92_002.html#tth_sEc3.2
 		"""		
+		print('--- method: %s ---' % sys._getframe().f_code.co_name)				
 		print("--------------------------------------------")
 		print("NICER rmf generator (ver.{})".format(__version__))
 		print(" output file : {} ".format(outrmffile))
@@ -331,6 +354,7 @@ TLMAX4  =                 %d / Last channel used
 		this method generates XPSEC redistribution matrix file (rmf file) for NICER.
 		https://heasarc.gsfc.nasa.gov/docs/heasarc/caldb/docs/memos/cal_gen_92_002/cal_gen_92_002.html#tth_sEc3.2
 		"""		
+		print('--- method: %s ---' % sys._getframe().f_code.co_name)						
 		print("--------------------------------------------")
 		print("NICER arf generator (ver.{})".format(__version__))
 		print(" output file : {} ".format(outarffile))		
@@ -497,11 +521,23 @@ HISTORY  FITS ARF extension written by WTARF1 1.1.0
 		f.write(dump)
 		f.close()
 
+		keyword_pairs_list = [
+			['XRC_APERTURE_FRACTION','APERTURE'],														
+			['maximum_diameter_cm','MAXDIAMT'],												
+			['maximum_incident_angle_deg','MAXANGL'],										
+			['numof_use_foils','NUMFOILS'],								
+			['roughness_A','ROUGHNES'],
+			['scaling_factor','SCALINGF'],			
+			['surface_model','REFLECM']
+			]
+
 		cmd = 'fthedit %s+1 @%s/tmp_header_specresp.txt;' % (outarffile,outdir)
 		for i in range(2):
 			cmd += 'fthedit %s+%d @%s/tmp_header_cmn.txt;' % (outarffile,i,outdir)	
 		for i in range(2):
 			cmd += 'fparkey %s %s+%d NIRESPVER add=yes;' % (__version__,outarffile,i)
+			for keyword_pairs in keyword_pairs_list:
+				cmd += 'fparkey %s %s+%d %s add=yes;' % (self.param[keyword_pairs[0]],outarffile,i,keyword_pairs[1])
 		print(cmd);os.system(cmd)
 
 		os.system('rm -f %s/tmp_header_*.txt' % outdir)
